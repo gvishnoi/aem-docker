@@ -12,8 +12,6 @@ It is designed for developers who want:
 - Reproducible startup/shutdown flows.
 - Easy configuration via `.env` files.
 
----
-
 ## 📁 Project Structure
 
 ```bash
@@ -45,8 +43,6 @@ aem-docker/
    └─ aemsdk-publish/           # Persistent repo for SDK Publish
 ```
 
----
-
 ## ⚙️ Prerequisites
 
 You need a working container runtime with Compose support. Either of these options works:
@@ -61,8 +57,6 @@ You need a working container runtime with Compose support. Either of these optio
 - `AEM_SDK_Quickstart.jar` + `license.properties`
 
 ⚠️ **Important:** Adobe binaries are **not included** in this repo due to licensing. Place them under `artifacts/` as shown above.
-
----
 
 ## 📝 Environment Files
 
@@ -96,9 +90,7 @@ You can override these per developer by copying to `.env` (which Compose loads a
 cp .env.aem65 .env
 ```
 
-Then run without `--env-file`.  
-
----
+Then run without `--env-file`.
 
 ## 🏗️ Build Images
 
@@ -117,8 +109,6 @@ Rebuild without cache:
 ```bash
 docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
 ```
-
----
 
 ## ▶️ Running Instances
 
@@ -162,8 +152,6 @@ docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
   docker compose --env-file .env.aemsdk -f aemsdk.compose.yml --profile all up -d
   ```
 
----
-
 ## 🌐 Access URLs
 
 | Version  | Role     | URL                          | Default Port |
@@ -175,8 +163,6 @@ docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
 
 Login: `admin / admin`
 
----
-
 ## 💾 Persistence
 
 - Each instance mounts `./data/...` → `/opt/aem/crx-quickstart`  
@@ -184,15 +170,11 @@ Login: `admin / admin`
 - To **wipe clean**, simply delete the corresponding folder under `data/`.  
   ⚠️ This will erase the repository and reinstall AEM from the Quickstart JAR.
 
----
-
 ## 🩺 Healthchecks
 
 - Containers are marked **healthy** when `/system/console/bundles.json` responds OK.
 - Healthcheck retries every 30s with a 10s timeout.
 - ⚠️ First startup (fresh repo) can take **5–10 minutes** while bundles are extracted.
-
----
 
 ## ⚖️ Notes
 
@@ -200,8 +182,6 @@ Login: `admin / admin`
 - **AEM SDK** supports **Java 11 and 17** (Java 17 used by default).
 - Do not bake Adobe binaries into images unless absolutely necessary (legal & size issues).
 - Dispatcher support can be added via a separate container wired to Publish.
-
----
 
 ## 📚 Documentation
 
@@ -211,14 +191,10 @@ Login: `admin / admin`
 - [Environment Variables](docs/env.md)
 - [Troubleshooting & Verification](docs/troubleshooting.md)
 
----
-
 ## 📜 License
 
 This repository contains **Docker setup only**.  
 You must provide your own licensed **AEM Quickstart JARs** and **license.properties** from [Adobe Software Distribution](https://experience.adobe.com/downloads).
-
----
 
 ## ✅ Quick Start
 

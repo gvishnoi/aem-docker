@@ -5,8 +5,6 @@ This repo supports **AEM 6.5** and **AEM SDK**.
 All commands assume you are in the project root and pass the correct `--env-file`  
 (`.env.aem65` or `.env.aemsdk`).  
 
----
-
 ## 🔨 Build Images
 
 ```bash
@@ -22,8 +20,6 @@ Rebuild from scratch (no cached layers):
 ```bash
 docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
 ```
-
----
 
 ## 🚀 Start Containers
 
@@ -104,8 +100,6 @@ aem65-author-1  | http://localhost:4502/
 aem65-author-1  | Quickstart started
 ```
 
----
-
 ## 🌐 Access URLs
 
 | Version  | Role     | URL                               | Port |
@@ -116,8 +110,6 @@ aem65-author-1  | Quickstart started
 | AEM SDK  | Publish  | [http://localhost:5503](http://localhost:5503)             | 5503 |
 
 Login: `admin / admin`
-
----
 
 ## ⏹️ Stopping Containers
 
@@ -132,16 +124,12 @@ docker compose --env-file .env.aemsdk -f aemsdk.compose.yml stop aemsdk-author
 docker compose --env-file .env.aem65 -f aem65.compose.yml stop aem65-publish
 ```
 
----
-
 ## 🔄 Restart Containers
 
 ```bash
 # Restart AEM 6.5 Author
 docker compose --env-file .env.aem65 -f aem65.compose.yml restart aem65-author
 ```
-
----
 
 ## 📜 View Logs
 
@@ -153,16 +141,12 @@ docker compose --env-file .env.aem65 -f aem65.compose.yml logs -f aem65-author
 docker compose --env-file .env.aemsdk -f aemsdk.compose.yml logs -f aemsdk-publish
 ```
 
----
-
 ## 🩺 Check Status
 
 ```bash
 # Show running containers and mapped ports
 docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 ```
-
----
 
 ## 🧹 Wipe Data (fresh repo install)
 
@@ -174,8 +158,6 @@ rm -rf data/aemsdk-author data/aemsdk-publish
 ```
 
 Then restart Author/Publish.
-
----
 
 ## ❌ Cleaning Up
 
@@ -192,8 +174,6 @@ rm -rf data/aemsdk-author data/aemsdk-publish
   docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
   docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build --no-cache
   ```
-
----
 
 ## ✅ Summary
 

@@ -14,8 +14,6 @@ All runtime settings are centralized in `.env` files.
 
 - **Stop grace period** is set to `3m` to allow AEM to shut down cleanly.
 
----
-
 ## Example: `.env.aem65`
 
 ```env
@@ -27,8 +25,6 @@ AEM65_PUBLISH_PORT=4503
 AEM65_JVM_OPTS=-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true
 ```
 
----
-
 ## Example: `.env.aemsdk`
 
 ```env
@@ -39,8 +35,6 @@ AEMSDK_PUBLISH_PORT=5503
 # JVM options
 AEMSDK_JVM_OPTS=-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true
 ```
-
----
 
 ## Usage
 
