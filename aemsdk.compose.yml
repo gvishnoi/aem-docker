@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Read-only bind helper
 x-bind-ro: &bind_ro { type: bind, read_only: true }
 
@@ -24,21 +22,25 @@ services:
 
     environment:
       RUN_MODE: "author"
+      # Container port & AEM listener (keep container fixed unless you know why to change it)
       PORT: "${AEMSDK_AUTHOR_PORT:-5502}"
       JVM_OPTS: "${AEMSDK_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_SDK_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
 
     volumes:
-    - <<: *bind_ro
-      source: ./artifacts/aem-sdk
-      target: /opt/aem/artifacts
-    - type: bind
-      source: ./data/aemsdk-author
-      target: /opt/aem/crx-quickstart
+      # Proprietary artifacts (never commit these)
+      - <<: *bind_ro
+        source: ./artifacts/aem-sdk
+        target: /opt/aem/artifacts
+      # Persistent repo
+      - type: bind
+        source: ./data/aemsdk-author
+        target: /opt/aem/crx-quickstart
 
     ports:
-    - "${AEMSDK_AUTHOR_PORT:-5502}:${AEMSDK_AUTHOR_PORT:-5502}"
+      # Host:Container
+      - "${AEMSDK_AUTHOR_PORT:-5502}:${AEMSDK_AUTHOR_PORT:-5502}"
 
     restart: unless-stopped
     stop_grace_period: 3m
@@ -70,15 +72,15 @@ services:
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
 
     volumes:
-    - <<: *bind_ro
-      source: ./artifacts/aem-sdk
-      target: /opt/aem/artifacts
-    - type: bind
-      source: ./data/aemsdk-publish
-      target: /opt/aem/crx-quickstart
+      - <<: *bind_ro
+        source: ./artifacts/aem-sdk
+        target: /opt/aem/artifacts
+      - type: bind
+        source: ./data/aemsdk-publish
+        target: /opt/aem/crx-quickstart
 
     ports:
-    - "${AEMSDK_PUBLISH_PORT:-5503}:${AEMSDK_PUBLISH_PORT:-5503}"
+      - "${AEMSDK_PUBLISH_PORT:-5503}:${AEMSDK_PUBLISH_PORT:-5503}"
 
     restart: unless-stopped
     stop_grace_period: 3m
@@ -93,3 +95,16 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+
+# ---
+# Alternative (recommended) port mapping pattern:
+# Keep container ports fixed (5502/5503) and vary only host ports.
+# This avoids accidental mismatch between AEM's internal listener and host mapping.
+#
+# Example:
+#   environment:
+#     PORT: "5502"  # fixed inside container
+#   ports:
+#     - "${AEMSDK_AUTHOR_PORT:-5502}:5502"
+#
+# Do this if you need to run multiple authors in parallel on different host ports.

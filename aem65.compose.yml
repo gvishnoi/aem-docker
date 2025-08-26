@@ -1,12 +1,10 @@
-version: "3.9"
-
 # One place to define a read-only bind mount
 x-bind-ro: &bind_ro { type: bind, read_only: true }
 
 name: aem65
 
 services:
-  # Build the Java 11 base once (contains entrypoint/healthcheck logic)
+  # Base image (build once, used by author/publish)
   aem65-base:
     build:
       context: .
@@ -21,38 +19,34 @@ services:
     depends_on: [ aem65-base ]
     profiles: [ "author", "all" ]
 
-    # Core runtime configuration (env-file values override defaults)
     environment:
       RUN_MODE: "author"
       PORT: "${AEM65_AUTHOR_PORT:-4502}"
-      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
+      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms2g -Xmx3g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
 
     volumes:
-    # Mount proprietary artifacts (never commit these)
-    - <<: *bind_ro
-      source: ./artifacts/aem65
-      target: /opt/aem/artifacts
-    # Persist CRX repository
-    - type: bind
-      source: ./data/aem65-author
-      target: /opt/aem/crx-quickstart
+      # Proprietary artifacts (never in git)
+      - <<: *bind_ro
+        source: /Users/gauvishn/gv/projects/aem-docker/artifacts/aem65
+        target: /opt/aem/artifacts
+      # Persistent repo
+      - type: bind
+        source: /Users/gauvishn/gv/projects/aem-docker/data/aem65-author
+        target: /opt/aem/crx-quickstart
 
-    # Map host:container port using .env value (falls back to default)
     ports:
-    - "${AEM65_AUTHOR_PORT:-4502}:${AEM65_AUTHOR_PORT:-4502}"
+      - "${AEM65_AUTHOR_PORT:-4502}:${AEM65_AUTHOR_PORT:-4502}"
 
     restart: unless-stopped
     stop_grace_period: 3m
 
-    # AEM opens lots of files; raise the soft/hard limit
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
 
-    # Keep logs bounded locally
     logging:
       driver: json-file
       options:
@@ -70,20 +64,20 @@ services:
     environment:
       RUN_MODE: "publish"
       PORT: "${AEM65_PUBLISH_PORT:-4503}"
-      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
+      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms2g -Xmx3g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
 
     volumes:
-    - <<: *bind_ro
-      source: ./artifacts/aem65
-      target: /opt/aem/artifacts
-    - type: bind
-      source: ./data/aem65-publish
-      target: /opt/aem/crx-quickstart
+      - <<: *bind_ro
+        source: /Users/gauvishn/gv/projects/aem-docker/artifacts/aem65
+        target: /opt/aem/artifacts
+      - type: bind
+        source: /Users/gauvishn/gv/projects/aem-docker/data/aem65-publish
+        target: /opt/aem/crx-quickstart
 
     ports:
-    - "${AEM65_PUBLISH_PORT:-4503}:${AEM65_PUBLISH_PORT:-4503}"
+      - "${AEM65_PUBLISH_PORT:-4503}:${AEM65_PUBLISH_PORT:-4503}"
 
     restart: unless-stopped
     stop_grace_period: 3m

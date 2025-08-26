@@ -53,6 +53,7 @@ You need a working container runtime with Compose support. Either of these optio
 
 - Docker Desktop ≥ 20.10 (includes Docker Compose v2)
 - Rancher Desktop ≥ 1.8 (with Docker CLI / Moby backend enabled)
+- At least **8 GB RAM** allocated if running both Author + Publish
 
 **AEM artifacts** (must be downloaded from Adobe Software Distribution):
 
@@ -111,6 +112,12 @@ docker compose --env-file .env.aem65 -f aem65.compose.yml build
 docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build
 ```
 
+Rebuild without cache:
+
+```bash
+docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
+```
+
 ---
 
 ## ▶️ Running Instances
@@ -161,10 +168,12 @@ docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build
 
 | Version  | Role     | URL                          | Default Port |
 |----------|----------|------------------------------|--------------|
-| AEM 6.5  | Author   | [http://localhost:4502](http://localhost:4502)        | 4502         |
-| AEM 6.5  | Publish  | [http://localhost:4503](http://localhost:4503)        | 4503         |
-| AEM SDK  | Author   | [http://localhost:5502](http://localhost:5502)        | 5502         |
-| AEM SDK  | Publish  | [http://localhost:5503](http://localhost:5503)        | 5503         |
+| AEM 6.5  | Author   | [http://localhost:4502](http://localhost:4502)        | 4502 |
+| AEM 6.5  | Publish  | [http://localhost:4503](http://localhost:4503)        | 4503 |
+| AEM SDK  | Author   | [http://localhost:5502](http://localhost:5502)        | 5502 |
+| AEM SDK  | Publish  | [http://localhost:5503](http://localhost:5503)        | 5503 |
+
+Login: `admin / admin`
 
 ---
 
@@ -172,7 +181,8 @@ docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build
 
 - Each instance mounts `./data/...` → `/opt/aem/crx-quickstart`  
 - Your repository persists between restarts/rebuilds.
-- To **wipe clean**, simply delete the corresponding folder under `data/`.
+- To **wipe clean**, simply delete the corresponding folder under `data/`.  
+  ⚠️ This will erase the repository and reinstall AEM from the Quickstart JAR.
 
 ---
 
@@ -180,67 +190,33 @@ docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build
 
 - Containers are marked **healthy** when `/system/console/bundles.json` responds OK.
 - Healthcheck retries every 30s with a 10s timeout.
-
----
-
-## 🔧 Configuration
-
-- **Runmodes & Ports** are configured via environment variables (from `.env` files).
-  - Author: `RUN_MODE=author` `PORT=4502` (or `5502` for SDK)
-  - Publish: `RUN_MODE=publish` `PORT=4503` (or `5503` for SDK)
-
-- **JVM Heap & GC** can be tuned in `.env.aem65` / `.env.aemsdk`:
-
-  ```env
-  AEM65_JVM_OPTS=-server -Xms4g -Xmx6g -XX:+UseG1GC -Djava.awt.headless=true
-  ```
-
-- **Stop grace period** is set to `3m` to allow AEM to shut down cleanly.
-
----
-
-## 🛑 Stopping Containers
-
-```bash
-# Stop everything (example for AEM 6.5)
-docker compose --env-file .env.aem65 -f aem65.compose.yml down
-
-# Stop SDK author only
-docker compose --env-file .env.aemsdk -f aemsdk.compose.yml stop aemsdk-author
-```
-
----
-
-## ❌ Cleaning Up
-
-- Remove repositories:
-
-  ```bash
-  rm -rf data/aem65-author data/aem65-publish data/aemsdk-author data/aemsdk-publish
-  ```
-
-- Rebuild from scratch:
-
-  ```bash
-  docker compose --env-file .env.aem65 -f aem65.compose.yml build --no-cache
-  docker compose --env-file .env.aemsdk -f aemsdk.compose.yml build --no-cache
-  ```
+- ⚠️ First startup (fresh repo) can take **5–10 minutes** while bundles are extracted.
 
 ---
 
 ## ⚖️ Notes
 
 - **AEM 6.5** requires **Java 11**.
-- **AEM SDK** supports **Java 11 and 17** (we use 17 by default).
+- **AEM SDK** supports **Java 11 and 17** (Java 17 used by default).
 - Do not bake Adobe binaries into images unless absolutely necessary (legal & size issues).
 - Dispatcher support can be added via a separate container wired to Publish.
+
+---
+
+## 📚 Documentation
+
+📚 For detailed commands and troubleshooting see:
+
+- [Running AEM Instances](docs/running.md)
+- [Environment Variables](docs/env.md)
+- [Troubleshooting & Verification](docs/troubleshooting.md)
 
 ---
 
 ## 📜 License
 
 This repository contains **Docker setup only**.  
-You must provide your own licensed **AEM Quickstart jars** and **license.properties** from [Adobe Software Distribution](https://experience.adobe.com/downloads).
+You must provide your own licensed **AEM Quickstart JARs** and **license.properties** from [Adobe Software Distribution](https://experience.adobe.com/downloads).
 
 ---
 
@@ -258,13 +234,13 @@ For example to run AEM 6.5 Author:
 3. Build base + role images:
 
    ```bash
-   docker compose -f aem65.compose.yml build
+   docker compose --env-file .env.aem65 -f aem65.compose.yml build
    ```
 
 4. Start AEM:
 
    ```bash
-   docker compose -f aem65.compose.yml --profile author up -d
+   docker compose --env-file .env.aem65 -f aem65.compose.yml --profile author up -d
    ```
 
 5. Open <http://localhost:4502> in your browser.
