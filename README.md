@@ -1,4 +1,4 @@
-# 🚀 AEM Dockerized Environment (AEM 6.5 & AEM SDK)
+# AEM Dockerized Environment (AEM 6.5 & AEM SDK)
 
 This project provides a **Dockerized setup** for running Adobe Experience Manager (AEM) 6.5 (Java 11) and AEM SDK (Java 17) in **Author** and **Publish** modes.  
 
@@ -189,6 +189,8 @@ You must provide your own licensed **AEM Quickstart jars** and **license.propert
 ---
 
 ## ✅ Quick Start
+
+For example to run AEM 6.5 Author:
 
 1. Place your Adobe JAR + license under `artifacts/aem65/` and `artifacts/aem-sdk/`.
 2. Build base + role images:
