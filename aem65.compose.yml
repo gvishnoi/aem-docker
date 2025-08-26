@@ -1,9 +1,12 @@
 version: "3.9"
 
+# One place to define a read-only bind mount
 x-bind-ro: &bind_ro { type: bind, read_only: true }
 
+name: aem65
+
 services:
-  # Build the base only once, then the tiny role images
+  # Build the Java 11 base once (contains entrypoint/healthcheck logic)
   aem65-base:
     build:
       context: .
@@ -17,20 +20,44 @@ services:
     image: local/aem65-author:latest
     depends_on: [ aem65-base ]
     profiles: [ "author", "all" ]
+
+    # Core runtime configuration (env-file values override defaults)
     environment:
-      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      RUN_MODE: "author"
+      PORT: "${AEM65_AUTHOR_PORT:-4502}"
+      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+
     volumes:
+    # Mount proprietary artifacts (never commit these)
     - <<: *bind_ro
       source: ./artifacts/aem65
       target: /opt/aem/artifacts
+    # Persist CRX repository
     - type: bind
       source: ./data/aem65-author
       target: /opt/aem/crx-quickstart
-    ports: [ "4502:4502" ]
+
+    # Map host:container port using .env value (falls back to default)
+    ports:
+    - "${AEM65_AUTHOR_PORT:-4502}:${AEM65_AUTHOR_PORT:-4502}"
+
     restart: unless-stopped
     stop_grace_period: 3m
+
+    # AEM opens lots of files; raise the soft/hard limit
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    # Keep logs bounded locally
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   aem65-publish:
     build:
@@ -39,10 +66,14 @@ services:
     image: local/aem65-publish:latest
     depends_on: [ aem65-base ]
     profiles: [ "publish", "all" ]
+
     environment:
-      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      RUN_MODE: "publish"
+      PORT: "${AEM65_PUBLISH_PORT:-4503}"
+      JVM_OPTS: "${AEM65_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+
     volumes:
     - <<: *bind_ro
       source: ./artifacts/aem65
@@ -50,6 +81,20 @@ services:
     - type: bind
       source: ./data/aem65-publish
       target: /opt/aem/crx-quickstart
-    ports: [ "4503:4503" ]
+
+    ports:
+    - "${AEM65_PUBLISH_PORT:-4503}:${AEM65_PUBLISH_PORT:-4503}"
+
     restart: unless-stopped
     stop_grace_period: 3m
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

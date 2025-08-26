@@ -1,8 +1,13 @@
 version: "3.9"
 
+# Read-only bind helper
 x-bind-ro: &bind_ro { type: bind, read_only: true }
 
+# Optional project name (keeps container names tidy)
+name: aemsdk
+
 services:
+  # Build the Java 17 base once (entrypoint/healthcheck live here)
   aemsdk-base:
     build:
       context: .
@@ -16,10 +21,14 @@ services:
     image: local/aemsdk-author:latest
     depends_on: [ aemsdk-base ]
     profiles: [ "author", "all" ]
+
     environment:
-      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      RUN_MODE: "author"
+      PORT: "${AEMSDK_AUTHOR_PORT:-5502}"
+      JVM_OPTS: "${AEMSDK_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_SDK_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+
     volumes:
     - <<: *bind_ro
       source: ./artifacts/aem-sdk
@@ -27,9 +36,23 @@ services:
     - type: bind
       source: ./data/aemsdk-author
       target: /opt/aem/crx-quickstart
-    ports: [ "5502:5502" ]
+
+    ports:
+    - "${AEMSDK_AUTHOR_PORT:-5502}:${AEMSDK_AUTHOR_PORT:-5502}"
+
     restart: unless-stopped
     stop_grace_period: 3m
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   aemsdk-publish:
     build:
@@ -38,10 +61,14 @@ services:
     image: local/aemsdk-publish:latest
     depends_on: [ aemsdk-base ]
     profiles: [ "publish", "all" ]
+
     environment:
-      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      RUN_MODE: "publish"
+      PORT: "${AEMSDK_PUBLISH_PORT:-5503}"
+      JVM_OPTS: "${AEMSDK_JVM_OPTS:--server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true}"
       AEM_JAR_PATH: "/opt/aem/artifacts/AEM_SDK_Quickstart.jar"
       LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+
     volumes:
     - <<: *bind_ro
       source: ./artifacts/aem-sdk
@@ -49,6 +76,20 @@ services:
     - type: bind
       source: ./data/aemsdk-publish
       target: /opt/aem/crx-quickstart
-    ports: [ "5503:5503" ]
+
+    ports:
+    - "${AEMSDK_PUBLISH_PORT:-5503}:${AEMSDK_PUBLISH_PORT:-5503}"
+
     restart: unless-stopped
     stop_grace_period: 3m
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
