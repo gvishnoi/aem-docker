@@ -1,0 +1,14 @@
+# Ignore Adobe artifacts
+artifacts/**/*.jar
+artifacts/**/license.properties
+
+# Ignore AEM repository data
+data/**
+
+# Ignore Mac/OSX and system files
+.DS_Store
+Thumbs.db
+
+# Ignore editor/IDE configs
+.vscode/
+.idea/

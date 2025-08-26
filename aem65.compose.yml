@@ -1,0 +1,55 @@
+version: "3.9"
+
+x-bind-ro: &bind_ro { type: bind, read_only: true }
+
+services:
+  # Build the base only once, then the tiny role images
+  aem65-base:
+    build:
+      context: .
+      dockerfile: docker/aem65/base.Dockerfile
+    image: local/aem65-base:latest
+
+  aem65-author:
+    build:
+      context: .
+      dockerfile: docker/aem65/author.Dockerfile
+    image: local/aem65-author:latest
+    depends_on: [ aem65-base ]
+    profiles: [ "author", "all" ]
+    environment:
+      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
+      LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+    volumes:
+    - <<: *bind_ro
+      source: ./artifacts/aem65
+      target: /opt/aem/artifacts
+    - type: bind
+      source: ./data/aem65-author
+      target: /opt/aem/crx-quickstart
+    ports: [ "4502:4502" ]
+    restart: unless-stopped
+    stop_grace_period: 3m
+
+  aem65-publish:
+    build:
+      context: .
+      dockerfile: docker/aem65/publish.Dockerfile
+    image: local/aem65-publish:latest
+    depends_on: [ aem65-base ]
+    profiles: [ "publish", "all" ]
+    environment:
+      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      AEM_JAR_PATH: "/opt/aem/artifacts/AEM_6.5_Quickstart.jar"
+      LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+    volumes:
+    - <<: *bind_ro
+      source: ./artifacts/aem65
+      target: /opt/aem/artifacts
+    - type: bind
+      source: ./data/aem65-publish
+      target: /opt/aem/crx-quickstart
+    ports: [ "4503:4503" ]
+    restart: unless-stopped
+    stop_grace_period: 3m

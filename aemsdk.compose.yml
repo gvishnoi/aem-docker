@@ -1,0 +1,54 @@
+version: "3.9"
+
+x-bind-ro: &bind_ro { type: bind, read_only: true }
+
+services:
+  aemsdk-base:
+    build:
+      context: .
+      dockerfile: docker/aemsdk/base.Dockerfile
+    image: local/aemsdk-base:latest
+
+  aemsdk-author:
+    build:
+      context: .
+      dockerfile: docker/aemsdk/author.Dockerfile
+    image: local/aemsdk-author:latest
+    depends_on: [ aemsdk-base ]
+    profiles: [ "author", "all" ]
+    environment:
+      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      AEM_JAR_PATH: "/opt/aem/artifacts/AEM_SDK_Quickstart.jar"
+      LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+    volumes:
+    - <<: *bind_ro
+      source: ./artifacts/aem-sdk
+      target: /opt/aem/artifacts
+    - type: bind
+      source: ./data/aemsdk-author
+      target: /opt/aem/crx-quickstart
+    ports: [ "5502:5502" ]
+    restart: unless-stopped
+    stop_grace_period: 3m
+
+  aemsdk-publish:
+    build:
+      context: .
+      dockerfile: docker/aemsdk/publish.Dockerfile
+    image: local/aemsdk-publish:latest
+    depends_on: [ aemsdk-base ]
+    profiles: [ "publish", "all" ]
+    environment:
+      JVM_OPTS: "-server -Xms3g -Xmx5g -XX:+UseG1GC -Djava.awt.headless=true"
+      AEM_JAR_PATH: "/opt/aem/artifacts/AEM_SDK_Quickstart.jar"
+      LICENSE_FILE: "/opt/aem/artifacts/license.properties"
+    volumes:
+    - <<: *bind_ro
+      source: ./artifacts/aem-sdk
+      target: /opt/aem/artifacts
+    - type: bind
+      source: ./data/aemsdk-publish
+      target: /opt/aem/crx-quickstart
+    ports: [ "5503:5503" ]
+    restart: unless-stopped
+    stop_grace_period: 3m
